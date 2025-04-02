@@ -5,39 +5,38 @@ import {
   useEffect,
   useState,
 } from "react";
-import { type UserType, type AuthContextType } from "../types/types";
+import { type AuthContextType, type UserTypeState } from "../types/types";
 import { supabase } from "../config/db";
 import { useNavigate } from "react-router-dom";
-import { createUser, getUser } from "../services/services";
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserType | null>(null);
+  const [user, setUser] = useState<UserTypeState | null>(null);
   const navigate = useNavigate();
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(): Promise<void> {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
       });
       if (error) throw new Error("Ha ocurrido un error en la autenticación");
-      const user = await getUser();
 
-      if (user) {
-        const userData = user.user_metadata as UserType;
-        const currentUser = await createUser({
-          id: userData.id,
-          email: userData.user_metadata.email,
-          picture: userData.user_metadata.picture,
-        });
-        setUser(currentUser);
-      }
-      return data;
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) throw new Error("No se pudo obtener el usuario");
+
+      const { id, user_metadata } = user;
+      const { email, picture, full_name } = user_metadata;
+      const userData: UserTypeState = { id, email, picture, full_name };
+      setUser(userData);
     } catch (error) {
-      console.error(error);
+      console.error("Error en la autenticación:", error);
     }
   }
 
@@ -55,10 +54,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user as UserType | null);
-      console.log(session?.user);
+      if (session?.user) {
+        const { id, email, user_metadata } = session.user;
+        const { picture, full_name } = user_metadata;
 
-      if (event === "SIGNED_IN") navigate("/home");
+        const userData: UserTypeState = {
+          id,
+          email: email || " ",
+          picture,
+          full_name,
+        };
+        setUser(userData);
+        if (event === "SIGNED_IN") navigate("/home");
+      } else {
+        setUser(null);
+      }
     });
 
     return () => {

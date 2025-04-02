@@ -1,21 +1,17 @@
 import { FormEvent, useEffect, useState } from "react";
-import { type Habit } from "../types/types";
-import { createHabit, getUser } from "../services/services";
+import { UserTypeState, type Habit } from "../types/types";
+import { createHabit, getDate } from "../services/services";
+import { useAuth } from "../context/AuthContext";
 
 export const HabitsForm = () => {
+  const { user } = useAuth();
   const [habit, setHabit] = useState<Habit>({
     name: "",
     description: "",
     completed: false,
     day_id: "",
-    user_id: "",
+    user_id: user ? user.id : "",
   });
-
-  useEffect(() => {
-    getUser().then((res) => {
-      return res?.id;
-    });
-  }, []);
 
   const handleSubmitForm = async (e: FormEvent) => {
     e.preventDefault();
@@ -23,8 +19,21 @@ export const HabitsForm = () => {
       return;
     }
     console.log(habit);
-    createHabit(habit);
+    createHabit(habit, user as UserTypeState);
   };
+
+  useEffect(() => {
+    const fetchDate = async () => {
+      const date = await getDate(); // Obtener la fecha desde la base de datos
+      if (date) {
+        setHabit((prevHabit) => ({
+          ...prevHabit,
+          day_id: date.id,
+        }));
+      }
+    };
+    fetchDate(); // Llamas a la función al montar el componente
+  }, []); // Solo se ejecuta una vez al montar el componente
 
   const handleSubmitInput = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

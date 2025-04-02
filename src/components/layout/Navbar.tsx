@@ -12,8 +12,8 @@ export const Navbar = () => {
       </div>
       <div className="ml-auto relative group">
         <img
-          src={user?.user_metadata.picture}
-          alt={user?.user_metadata.name}
+          src={user?.picture}
+          alt={user?.full_name}
           className="w-12 h-12 rounded-full cursor-pointer"
         />
 
