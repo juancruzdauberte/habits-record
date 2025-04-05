@@ -24,14 +24,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       if (error) throw new Error("Ha ocurrido un error en la autenticación");
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { data, error: userError } = await supabase.auth.getUser();
 
-      if (userError || !user) throw new Error("No se pudo obtener el usuario");
+      if (userError || !data.user) {
+        throw new Error("No se pudo obtener el usuario autenticado");
+      }
 
-      const { id, user_metadata } = user;
+      const { id, user_metadata } = data.user;
       const { email, picture, full_name } = user_metadata;
       const userData: UserTypeState = { id, email, picture, full_name };
       setUser(userData);

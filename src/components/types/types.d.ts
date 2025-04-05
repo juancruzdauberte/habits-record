@@ -67,6 +67,19 @@ export interface AuthContextType {
   signInWithGoogle: () => Promise;
 }
 
+export interface HabitContextType {
+  habits: ArrayHabits;
+  addHabit: (habit: Habit) => Promise<void>;
+  loadHabits: () => Promise<void>;
+  habitCompleted: ({
+    id,
+    completed,
+  }: {
+    id: string;
+    completed: boolean;
+  }) => Promise<void>;
+}
+
 export type Habit = {
   id?: string;
   name: string;
@@ -80,6 +93,3 @@ export type Day = {
   id?: string;
   date: string;
 };
-
-export type ArrayDays = Day[];
-export type ArrayHabits = Habit[];

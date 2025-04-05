@@ -1,35 +1,53 @@
 import { useEffect, useState } from "react";
-import { type ArrayHabits, type Day } from "../types/types";
-import { getDate, getHabitsForUser } from "../services/services";
+import { useHabits } from "../context/HabitContext";
+import { type Day, type Habit } from "../types/types";
+import { checkAndResetHabits, getDate } from "../services/services";
+import { useAuth } from "../context/AuthContext";
 
 export const HabitContainer = () => {
-  const [currentDate, setCurrentDate] = useState<Day>({ date: "" });
-  const [habits, setHabits] = useState<ArrayHabits>([]);
-  console.log(habits);
-  useEffect(() => {
-    getDate()
-      .then((res) => {
-        if (res) setCurrentDate(res);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const { habits, habitCompleted } = useHabits();
+  const { user } = useAuth();
+  const [currentDay, setCurrentDay] = useState<Day>({ date: "" });
 
-    getHabitsForUser()
-      .then((res) => {
-        if (res) setHabits(res);
-      })
-      .catch((error) => console.log(error));
-  }, []);
+  useEffect(() => {
+    const checkHabitsForNeyDay = async () => {
+      if (user) await checkAndResetHabits(user);
+      getDate().then((res) => setCurrentDay(res!));
+    };
+
+    checkHabitsForNeyDay();
+  }, [user]);
+
+  const allCompleted =
+    habits.length > 0 && habits.every((h: Habit) => h.completed);
 
   return (
     <section>
-      <div>{currentDate.date}</div>
-      <div>
-        {habits.map((habit) => {
-          return <div key={habit.id}>{habit.name}</div>;
-        })}
-      </div>
+      {allCompleted ? (
+        <section>
+          <p>¡Felicidades, completaste todos tus hábitos!</p>
+        </section>
+      ) : (
+        <>
+          <div className="flex justify-center">{currentDay.date}</div>
+          {habits.map((habit: Habit) => (
+            <div key={habit.id} className="flex gap-2">
+              <input
+                type="checkbox"
+                checked={habit.completed}
+                onChange={(e) =>
+                  habitCompleted({
+                    id: habit.id!,
+                    completed: e.target.checked,
+                  })
+                }
+                value={habit.id}
+              />
+              <label>{habit.name}</label>
+            </div>
+          ))}
+        </>
+      )}
     </section>
   );
 };

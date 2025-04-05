@@ -5,7 +5,9 @@ export const Account = () => {
   document.title = "Mi cuenta";
   return (
     <div>
-      <img src={user?.user_metadata.picture} alt={user?.user_metadata.name} />
+      <img src={user?.picture} alt={user?.full_name} />
+      <p>{user?.full_name}</p>
+      <p>{user?.email}</p>
       <button onClick={signOut}>Cerrar sesion</button>
     </div>
   );

@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
-import { UserTypeState, type Habit } from "../types/types";
-import { createHabit, getDate } from "../services/services";
+import { type Habit } from "../types/types";
+import { getDate } from "../services/services";
 import { useAuth } from "../context/AuthContext";
+import { useHabits } from "../context/HabitContext";
 
 export const HabitsForm = () => {
   const { user } = useAuth();
+  const { addHabit } = useHabits();
   const [habit, setHabit] = useState<Habit>({
     name: "",
     description: "",
@@ -18,8 +20,8 @@ export const HabitsForm = () => {
     if (habit.name.trim() === "" && habit.description.trim() === "") {
       return;
     }
-    console.log(habit);
-    createHabit(habit, user as UserTypeState);
+    await addHabit(habit);
+    setHabit({ ...habit, name: "", description: "" });
   };
 
   useEffect(() => {
@@ -39,11 +41,12 @@ export const HabitsForm = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { value, name } = e.target;
-    setHabit((prev) => ({ ...prev, [name]: value }));
+    setHabit({ ...habit, [name]: value });
+    console.log(habit);
   };
 
   return (
-    <div className="w-96">
+    <section className="w-96">
       <form
         onSubmit={(e) => handleSubmitForm(e)}
         className="flex flex-col gap-6 items-center"
@@ -71,6 +74,6 @@ export const HabitsForm = () => {
           Agregar hábito
         </button>
       </form>
-    </div>
+    </section>
   );
 };

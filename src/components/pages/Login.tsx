@@ -8,7 +8,7 @@ export const Login = () => {
   document.title = "Login - Habits Record";
 
   useEffect(() => {
-    const fetchData = async (): Promise<void> => {
+    const fetchData = async () => {
       if (user) await createUser(user);
     };
     fetchData();

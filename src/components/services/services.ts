@@ -1,20 +1,9 @@
 import { supabase } from "../config/db";
-import {
-  UserTypeState,
-  type ArrayHabits,
-  type Day,
-  type Habit,
-} from "../types/types";
-import { v4 as uuidv4 } from "uuid";
-import { toZonedTime, format } from "date-fns-tz";
+import { UserTypeState, type Day, type Habit } from "../types/types";
 
 export async function getDate(): Promise<Day | null> {
   try {
-    const argentinaTime = toZonedTime(
-      new Date(),
-      "America/Argentina/Buenos_Aires"
-    );
-    const currentDay = format(argentinaTime, "dd-MM-yyyy");
+    const currentDay = new Date().toISOString().split("T")[0];
     const { data, error } = await supabase
       .from("day")
       .select()
@@ -30,6 +19,58 @@ export async function getDate(): Promise<Day | null> {
   }
 }
 
+export async function updateHabitCompleted(
+  { id, completed }: { id: string; completed: boolean },
+  user: UserTypeState
+) {
+  try {
+    const { data, error } = await supabase
+      .from("habit")
+      .update({ completed: completed })
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select();
+
+    if (error) throw error;
+
+    console.log("Hábito actualizado:", data);
+
+    return data;
+  } catch (error) {
+    console.error("Error en updateHabitCompleted:", error);
+    return null;
+  }
+}
+
+export async function checkAndResetHabits(user: UserTypeState): Promise<void> {
+  try {
+    const today = getDate().then((res) => {
+      return res!;
+    });
+    if (!today) throw new Error("No se pudo obtener la fecha actual");
+    await resetHabitsForNewDay(user);
+  } catch (error) {
+    console.error("Error en checkAndResetHabits:", error);
+  }
+}
+
+export async function resetHabitsForNewDay(user: UserTypeState): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("habit")
+      .update({ completed: false })
+      .eq("user_id", user.id);
+
+    if (error) {
+      throw new Error("Error al resetear hábitos: " + error.message);
+    }
+
+    console.log("Hábitos reseteados correctamente.");
+  } catch (error) {
+    console.error("Error en resetHabitsForNewDay:", error);
+  }
+}
+
 export async function createHabit(
   habit: Habit,
   user: UserTypeState
@@ -40,9 +81,13 @@ export async function createHabit(
       throw new Error("Fecha no encontrada");
     }
 
-    const { data }: { data: Habit[] | null } = await supabase
+    const { data, error } = await supabase
       .from("habit")
-      .insert({ ...habit, day_id: date.id, user_id: user.id });
+      .insert({ ...habit, day_id: date.id, user_id: user.id })
+      .select()
+      .single();
+
+    if (error) throw error;
 
     console.log("Hábito insertado:", data);
 
@@ -53,52 +98,51 @@ export async function createHabit(
   }
 }
 
-export async function createUser({
-  id,
-  email,
-  full_name,
-  picture,
-}: UserTypeState): Promise<void> {
+export async function createUser(user: UserTypeState): Promise<void> {
   try {
-    console.log("Intentando verificar usuario en la BD con ID:", id);
+    const userInBd = await getUserById(user.id);
+    console.log(userInBd);
+    if (!userInBd) {
+      const { error: insertError } = await supabase
+        .from("users")
+        .insert([user]);
 
-    // Verificar si el usuario ya existe en la base de datos
-    const { data, error } = await supabase
-      .from("user")
-      .select("*")
-      .eq("id", id);
-
-    console.log("Respuesta de la consulta:", data, error);
-
-    if (error && error.code !== "PGRST116") throw error; // Si es otro error, lanzarlo
-    if (data && data.length > 0) {
-      console.log("El usuario ya existe en la base de datos.");
-      return;
-    }
-
-    console.log("El usuario no existe, intentando insertarlo...");
-
-    const formattedId = id && id.length === 36 ? id : uuidv4();
-    const { error: insertError } = await supabase.from("user").insert([
-      {
-        id: formattedId,
-        email,
-        picture,
-        full_name,
-      },
-    ]);
-
-    if (insertError) {
-      console.error("Error al insertar usuario:", insertError);
-    } else {
-      console.log("Usuario insertado correctamente.");
+      if (insertError) {
+        console.error("Error al insertar usuario:", insertError);
+      } else {
+        console.log("Usuario insertado correctamente.");
+      }
     }
   } catch (error) {
     console.log("Error en createUser:", error);
   }
 }
 
-export async function getHabitsForUser(): Promise<ArrayHabits | null> {
+export async function getUserById(id: string): Promise<UserTypeState | null> {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, email, full_name, picture")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        console.warn("El usuario no existe en la base de datos.");
+        return null;
+      }
+      console.error("Error al obtener usuario:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error al obtener el usuario:", error);
+    return null;
+  }
+}
+
+export async function getHabitsForUser(): Promise<Habit[] | null> {
   try {
     const {
       data: { user },
