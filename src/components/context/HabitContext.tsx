@@ -1,17 +1,12 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, ReactNode, useContext } from "react";
 import { type Habit, type HabitContextType } from "../types/types";
 import { useAuth } from "./AuthContext";
 import {
-  createHabit,
-  getHabitsForUser,
-  updateHabitCompleted,
+  getHabitsForToday,
+  addHabit,
+  toggleHabitStatus,
 } from "../services/services";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const HabitContext = createContext<HabitContextType | undefined>(
@@ -19,56 +14,57 @@ export const HabitContext = createContext<HabitContextType | undefined>(
 );
 
 export const HabitProvider = ({ children }: { children: ReactNode }) => {
-  const [habits, setHabits] = useState<Habit[]>([]);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const loadHabits = async () => {
-    if (!user) return;
-    const data = await getHabitsForUser();
-    if (data) setHabits(data);
-  };
+  const { data: habits = [], isLoading } = useQuery<Habit[]>({
+    queryKey: ["habits", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await getHabitsForToday(user.id);
+    },
+    enabled: !!user?.id,
+  });
 
-  const addHabit = async (habit: Habit) => {
-    if (!user) return;
-    const habitCreated = await createHabit(habit, user);
-    if (habitCreated) setHabits((prevHabits) => [...prevHabits, habitCreated]);
-    toast.success("Habito creado exitosamente");
-  };
+  const { mutate: addNewHabit } = useMutation<
+    Habit | null,
+    Error,
+    { title: string; description: string }
+  >({
+    mutationFn: async ({ title, description }) => {
+      if (!user?.id) throw new Error("El usuario no está autenticado");
+      return addHabit({ title, description, userId: user.id });
+    },
+    onSuccess: () => {
+      toast.success("Hábito agregado con éxito");
+      queryClient.invalidateQueries({ queryKey: ["habits", user?.id] });
+    },
+    onError: (error) => {
+      toast.error("Error al agregar el hábito");
+      console.error(error);
+    },
+  });
 
-  const habitCompleted = async ({
-    id,
-    completed,
-  }: {
-    id: string;
-    completed: boolean;
-  }) => {
-    if (!user) return;
-    setHabits((prevHabits) =>
-      prevHabits.map((habit) =>
-        habit.id === id ? { ...habit, completed } : habit
-      )
-    );
+  const { mutate: toggleHabit } = useMutation<
+    void,
+    Error,
+    { habitId: string; completed: boolean }
+  >({
+    mutationFn: async ({
+      habitId,
+      completed,
+    }: {
+      habitId: string;
+      completed: boolean;
+    }) => toggleHabitStatus(user?.id as string, habitId, completed),
+    onSuccess: () => {
+      toast.success("Habito realizado con exito");
+      queryClient.invalidateQueries({ queryKey: ["habits", user?.id] });
+    },
+  });
 
-    const updatedHabit = await updateHabitCompleted({ id, completed }, user);
+  const value = { habits, isLoading, addNewHabit, toggleHabit };
 
-    if (!updatedHabit) {
-      setHabits((prevHabits) =>
-        prevHabits.map((habit) =>
-          habit.id === id ? { ...habit, completed: !completed } : habit
-        )
-      );
-      toast.error("No se pudo actualizar el hábito. Intentalo nuevamente");
-    } else {
-      if (completed)
-        toast.success("Hábito realizado exitosamente. Felicidades!");
-    }
-  };
-
-  useEffect(() => {
-    loadHabits();
-  }, [user]);
-
-  const value = { loadHabits, addHabit, habitCompleted, habits };
   return (
     <HabitContext.Provider value={value}>{children}</HabitContext.Provider>
   );

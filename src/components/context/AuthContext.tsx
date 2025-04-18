@@ -8,6 +8,7 @@ import {
 import { type AuthContextType, type UserTypeState } from "../types/types";
 import { supabase } from "../config/db";
 import { useNavigate } from "react-router-dom";
+import { useLoading } from "../hooks/useLoading";
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
@@ -15,7 +16,10 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserTypeState | null>(null);
+  const { loading, loadingFalse, loadingTrue } = useLoading();
   const navigate = useNavigate();
+  const [hasRequestedMagicLink, setHasRequestedMagicLink] =
+    useState<boolean>(false);
 
   async function signInWithGoogle(): Promise<void> {
     try {
@@ -23,23 +27,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         provider: "google",
       });
       if (error) throw new Error("Ha ocurrido un error en la autenticación");
-
-      const { data, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !data.user) {
-        throw new Error("No se pudo obtener el usuario autenticado");
-      }
-
-      const { id, user_metadata } = data.user;
-      const { email, picture, full_name } = user_metadata;
-      const userData: UserTypeState = { id, email, picture, full_name };
-      setUser(userData);
     } catch (error) {
       console.error("Error en la autenticación:", error);
     }
   }
 
+  async function signInWithMagicLink(email: string): Promise<void> {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+      });
+      navigate("/check-email");
+      setHasRequestedMagicLink(true);
+      if (error) throw new Error(error.message);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function signOut() {
+    loadingTrue();
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw new Error("Ha ocurrido un error en la autenticación");
@@ -48,6 +55,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       navigate("/");
     } catch (error) {
       console.error(error);
+    } finally {
+      loadingFalse();
     }
   }
 
@@ -75,7 +84,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [navigate]);
 
-  const value = { signInWithGoogle, signOut, user };
+  const value = {
+    signInWithGoogle,
+    signOut,
+    user,
+    loading,
+    signInWithMagicLink,
+    hasRequestedMagicLink,
+    loadingTrue,
+    loadingFalse,
+  };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

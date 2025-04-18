@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Loading } from "../common/widgets/Loading";
 export const Navbar = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
+
+  if (loading)
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-slate-300">
+        <Loading text="Cerrando sesion..." />
+      </section>
+    );
 
   return (
     <header className="w-full flex items-center bg-slate-500 p-2">

@@ -1,77 +1,68 @@
-import { FormEvent, useEffect, useState } from "react";
-import { type Habit } from "../types/types";
-import { getDate } from "../services/services";
-import { useAuth } from "../context/AuthContext";
 import { useHabits } from "../context/HabitContext";
+import { useForm } from "@tanstack/react-form";
+import { useAuth } from "../context/AuthContext";
+import { Habit } from "../types/types";
 
 export const HabitsForm = () => {
+  const { addNewHabit } = useHabits();
   const { user } = useAuth();
-  const { addHabit } = useHabits();
-  const [habit, setHabit] = useState<Habit>({
-    name: "",
-    description: "",
-    completed: false,
-    day_id: "",
-    user_id: user ? user.id : "",
+
+  const form = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+      user_id: user?.id,
+    } as Habit,
+
+    onSubmit: async ({ value }) => {
+      await addNewHabit({ title: value.title, description: value.description });
+    },
   });
-
-  const handleSubmitForm = async (e: FormEvent) => {
-    e.preventDefault();
-    if (habit.name.trim() === "" && habit.description.trim() === "") {
-      return;
-    }
-    await addHabit(habit);
-    setHabit({ ...habit, name: "", description: "" });
-  };
-
-  useEffect(() => {
-    const fetchDate = async () => {
-      const date = await getDate(); // Obtener la fecha desde la base de datos
-      if (date) {
-        setHabit((prevHabit) => ({
-          ...prevHabit,
-          day_id: date.id,
-        }));
-      }
-    };
-    fetchDate(); // Llamas a la función al montar el componente
-  }, []); // Solo se ejecuta una vez al montar el componente
-
-  const handleSubmitInput = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { value, name } = e.target;
-    setHabit({ ...habit, [name]: value });
-    console.log(habit);
-  };
 
   return (
     <section className="w-96">
       <form
-        onSubmit={(e) => handleSubmitForm(e)}
-        className="flex flex-col gap-6 items-center"
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="flex flex-col gap-5"
       >
-        <input
-          type="text"
-          name="name"
-          value={habit.name}
-          placeholder="Ingresa el habito que queres realizar"
-          onChange={(e) => handleSubmitInput(e)}
-          className="w-full h-10 px-4 py-2  border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-        <textarea
-          name="description"
-          placeholder="Ingresa la descripcion del habito"
-          value={habit.description}
-          onChange={(e) => handleSubmitInput(e)}
-          className="w-full h-32 px-4 py-2  border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
-        />
+        <form.Field name="title">
+          {(field) => (
+            <div className="flex flex-col gap-2">
+              <label>Titulo</label>
+              <input
+                id="title"
+                name="title"
+                type="text"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600"
+              />
+            </div>
+          )}
+        </form.Field>
 
+        <form.Field name="description">
+          {(field) => (
+            <div className="flex flex-col gap-2">
+              <label>Descripcion</label>
+              <textarea
+                id="description"
+                name="description"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600 min-h-[150px] resize-none"
+              ></textarea>
+            </div>
+          )}
+        </form.Field>
         <button
-          className="font-bold bg-orange-400 p-2 rounded-md text-white hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-600 "
           type="submit"
+          className="w-full bg-slate-800 text-white py-2 rounded-sm font-semibold hover:bg-slate-700 transition-colors"
         >
-          Agregar hábito
+          Crear hábito
         </button>
       </form>
     </section>

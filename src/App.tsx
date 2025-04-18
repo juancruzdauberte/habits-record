@@ -7,24 +7,39 @@ import { ProtectedRoutes } from "./components/config/ProtectedRoutes";
 import { NotFound } from "./components/pages/NotFound";
 import { HabitProvider } from "./components/context/HabitContext";
 import { Toaster } from "sonner";
+import { ProtectedLayout } from "./components/config/ProtectedLayout";
+import { ProtectedCheckEmailRoute } from "./components/config/ProtectedCheckEmailRoute";
+import { CheckEmail } from "./components/pages/CheckEmail";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Toaster richColors duration={2500} />
-      <AuthProvider>
-        <HabitProvider>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="*" element={<NotFound />} />
-            <Route element={<ProtectedRoutes />}>
-              <Route path="/account" element={<Account />} />
-              <Route path="/home" element={<Home />} />
-            </Route>
-          </Routes>
-        </HabitProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <section className=" bg-slate-200 text-black w-full">
+      <BrowserRouter>
+        <Toaster richColors duration={2500} />
+        <AuthProvider>
+          <HabitProvider>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="*" element={<NotFound />} />
+              <Route
+                path="/check-email"
+                element={
+                  <ProtectedCheckEmailRoute>
+                    <CheckEmail />
+                  </ProtectedCheckEmailRoute>
+                }
+              />
+              <Route element={<ProtectedRoutes />}>
+                <Route element={<ProtectedLayout />}>
+                  <Route path="/account" element={<Account />} />
+                  <Route path="/home" element={<Home />} />
+                </Route>
+              </Route>
+            </Routes>
+          </HabitProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </section>
   );
 }
 

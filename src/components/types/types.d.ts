@@ -65,31 +65,38 @@ export interface AuthContextType {
   user: UserTypeState | null;
   signOut: () => Promise;
   signInWithGoogle: () => Promise;
+  loading: boolean;
+  loadingTrue: () => void;
+  loadingFalse: () => void;
+  signInWithMagicLink: (email: string) => Promise;
+  hasRequestedMagicLink: bolean;
 }
 
 export interface HabitContextType {
-  habits: ArrayHabits;
-  addHabit: (habit: Habit) => Promise<void>;
-  loadHabits: () => Promise<void>;
-  habitCompleted: ({
-    id,
-    completed,
-  }: {
-    id: string;
-    completed: boolean;
-  }) => Promise<void>;
+  habits: Habit[] | null;
+  isLoading: boolean;
+  addNewHabit: UseMutateFunction<
+    void,
+    Error,
+    { title: string; description: string }
+  >;
+  toggleHabit: UseMutateFunction<
+    void,
+    Error,
+    { habitId: string; completed: boolean }
+  >;
 }
 
 export type Habit = {
   id?: string;
-  name: string;
+  title: string;
   description: string;
-  completed: boolean;
-  day_id: string | undefined;
   user_id: string;
 };
+export type HabitWithStatus = Habit & { completed: boolean };
 
-export type Day = {
-  id?: string;
+export type DailySummary = {
+  user_id: string;
   date: string;
+  shown: boolean;
 };
