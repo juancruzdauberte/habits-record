@@ -1,29 +1,41 @@
-import { createContext, ReactNode, useContext } from "react";
-import { type Habit, type HabitContextType } from "../types/types";
+import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  HabitWithStatus,
+  type Habit,
+  type HabitContextType,
+} from "../types/types";
 import { useAuth } from "./AuthContext";
 import {
   getHabitsForToday,
   addHabit,
   toggleHabitStatus,
+  getHabitsByDate,
 } from "../services/services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export const HabitContext = createContext<HabitContextType | undefined>(
-  undefined
-);
+const HabitContext = createContext<HabitContextType | undefined>(undefined);
 
 export const HabitProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const formattedDate = selectedDate.toISOString().split("T")[0];
   const queryClient = useQueryClient();
 
-  const { data: habits = [], isLoading } = useQuery<Habit[]>({
+  const {
+    data: habits = [],
+    isLoading,
+    error: loadHabitsError,
+  } = useQuery<HabitWithStatus[]>({
     queryKey: ["habits", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await getHabitsForToday(user.id);
-    },
+    queryFn: () => getHabitsForToday(user!.id),
     enabled: !!user?.id,
+  });
+
+  const { data: habitsTracking = [] } = useQuery<HabitWithStatus[]>({
+    queryKey: ["habitsTracking", user?.id, formattedDate],
+    queryFn: () => getHabitsByDate(user!.id, formattedDate),
+    enabled: !!user?.id && !!selectedDate,
   });
 
   const { mutate: addNewHabit } = useMutation<
@@ -58,12 +70,21 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       completed: boolean;
     }) => toggleHabitStatus(user?.id as string, habitId, completed),
     onSuccess: () => {
-      toast.success("Habito realizado con exito");
       queryClient.invalidateQueries({ queryKey: ["habits", user?.id] });
+      toast.success("Habito realizado con exito");
     },
   });
 
-  const value = { habits, isLoading, addNewHabit, toggleHabit };
+  const value = {
+    habits,
+    isLoading,
+    addNewHabit,
+    toggleHabit,
+    loadHabitsError,
+    habitsTracking,
+    selectedDate,
+    setSelectedDate,
+  };
 
   return (
     <HabitContext.Provider value={value}>{children}</HabitContext.Provider>

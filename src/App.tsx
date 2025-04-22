@@ -10,10 +10,11 @@ import { Toaster } from "sonner";
 import { ProtectedLayout } from "./components/config/ProtectedLayout";
 import { ProtectedCheckEmailRoute } from "./components/config/ProtectedCheckEmailRoute";
 import { CheckEmail } from "./components/pages/CheckEmail";
+import { HabitsTrackig } from "./components/pages/HabitsTrackig";
 
 function App() {
   return (
-    <section className=" bg-slate-200 text-black w-full">
+    <section className=" bg-slate-50 text-black w-full">
       <BrowserRouter>
         <Toaster richColors duration={2500} />
         <AuthProvider>
@@ -33,6 +34,7 @@ function App() {
                 <Route element={<ProtectedLayout />}>
                   <Route path="/account" element={<Account />} />
                   <Route path="/home" element={<Home />} />
+                  <Route path="/habits-tracking" element={<HabitsTrackig />} />
                 </Route>
               </Route>
             </Routes>

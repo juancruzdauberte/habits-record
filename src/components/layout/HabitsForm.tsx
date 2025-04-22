@@ -14,13 +14,14 @@ export const HabitsForm = () => {
       user_id: user?.id,
     } as Habit,
 
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value, formApi }) => {
       await addNewHabit({ title: value.title, description: value.description });
+      formApi.reset();
     },
   });
 
   return (
-    <section className="w-96">
+    <section className="bg-gray-50 shadow-md p-4">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -28,18 +29,33 @@ export const HabitsForm = () => {
         }}
         className="flex flex-col gap-5"
       >
-        <form.Field name="title">
+        <form.Field
+          name="title"
+          validators={{
+            onSubmit: ({ value }) => {
+              if (value.trim() === "") return "Debes ingresar un titulo";
+            },
+          }}
+        >
           {(field) => (
             <div className="flex flex-col gap-2">
-              <label>Titulo</label>
+              <label className="font-semibold text-md md:text-lg">
+                Título <span className="text-red-600">*</span>
+              </label>
               <input
                 id="title"
                 name="title"
                 type="text"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600"
+                className="px-2 py-0.5 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600"
               />
+
+              {field.state.meta.errors.length > 0 && (
+                <em className="text-red-500 text-sm">
+                  {field.state.meta.errors.join(", ")}
+                </em>
+              )}
             </div>
           )}
         </form.Field>
@@ -47,13 +63,15 @@ export const HabitsForm = () => {
         <form.Field name="description">
           {(field) => (
             <div className="flex flex-col gap-2">
-              <label>Descripcion</label>
+              <label className="font-semibold text-md md:text-lg">
+                Descripción (Opcional)
+              </label>
               <textarea
                 id="description"
                 name="description"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600 min-h-[150px] resize-none"
+                className="px-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600 min-h-[150px] resize-none"
               ></textarea>
             </div>
           )}

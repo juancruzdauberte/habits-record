@@ -73,8 +73,12 @@ export interface AuthContextType {
 }
 
 export interface HabitContextType {
-  habits: Habit[] | null;
+  habits: HabitWithStatus[];
+  habitsTracking: HabitWithStatus[];
   isLoading: boolean;
+  selectedDate: Date;
+  loadHabitsError: Error | null;
+  setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
   addNewHabit: UseMutateFunction<
     void,
     Error,

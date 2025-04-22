@@ -1,5 +1,9 @@
 import { supabase } from "../config/db";
-import { HabitWithStatus, UserTypeState, type Habit } from "../types/types";
+import {
+  type HabitWithStatus,
+  type UserTypeState,
+  type Habit,
+} from "../types/types";
 
 export async function createUser(user: UserTypeState) {
   try {
@@ -49,7 +53,7 @@ export async function getHabitsForToday(
       .select("id, title, description, user_id")
       .eq("user_id", userId);
 
-    if (habitsError) throw new Error(habitsError.message);
+    if (habitsError) throw new Error("Error al cargar hábitos");
 
     const { data: tracking, error: trackingError } = await supabase
       .from("habits_tracking")
@@ -57,23 +61,53 @@ export async function getHabitsForToday(
       .eq("user_id", userId)
       .eq("date", today);
 
-    if (trackingError) throw new Error(trackingError.message);
+    if (trackingError) throw new Error("Error al cargar tracking");
 
     const result: HabitWithStatus[] = habits.map((habit) => {
       const tracked = tracking.find((t) => t.habit_id === habit.id);
       return {
-        id: habit.id,
-        title: habit.title,
-        description: habit.description,
-        user_id: habit.user_id,
+        ...habit,
         completed: tracked ? tracked.completed : false,
       };
     });
 
     return result;
   } catch (error) {
-    console.error(error);
-    return [];
+    throw new Error(error as string);
+  }
+}
+
+export async function getHabitsByDate(
+  userId: string,
+  date: string
+): Promise<HabitWithStatus[]> {
+  try {
+    const { data: habits, error: habitsError } = await supabase
+      .from("habits")
+      .select("id, title, description, user_id")
+      .eq("user_id", userId);
+
+    if (habitsError) throw new Error("Error al cargar hábitos");
+
+    const { data: tracking, error: trackingError } = await supabase
+      .from("habits_tracking")
+      .select("habit_id, completed")
+      .eq("user_id", userId)
+      .eq("date", date);
+
+    if (trackingError) throw new Error("Error al cargar tracking");
+
+    const result: HabitWithStatus[] = habits.map((habit) => {
+      const tracked = tracking.find((t) => t.habit_id === habit.id);
+      return {
+        ...habit,
+        completed: tracked ? tracked.completed : false,
+      };
+    });
+
+    return result;
+  } catch (error) {
+    throw new Error(error as string);
   }
 }
 

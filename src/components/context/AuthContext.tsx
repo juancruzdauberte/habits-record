@@ -7,18 +7,17 @@ import {
 } from "react";
 import { type AuthContextType, type UserTypeState } from "../types/types";
 import { supabase } from "../config/db";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useLoading } from "../hooks/useLoading";
-import md5 from "md5";
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserTypeState | null>(null);
   const { loading, loadingFalse, loadingTrue } = useLoading();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [hasRequestedMagicLink, setHasRequestedMagicLink] =
     useState<boolean>(false);
 
@@ -66,17 +65,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (session?.user) {
         const { id, email, user_metadata } = session.user;
         const { picture, full_name } = user_metadata;
-        const gravatarUrl = `https://www.gravatar.com/avatar/${md5(
-          email?.trim().toLowerCase() || ""
-        )}?d=identicon`;
+
         const userData: UserTypeState = {
           id,
           email: email || " ",
-          picture: picture || gravatarUrl,
+          picture,
           full_name,
         };
         setUser(userData);
-        if (event === "SIGNED_IN") navigate("/home");
+        if (event === "SIGNED_IN" && location.pathname === "/")
+          navigate("/home");
       } else {
         setUser(null);
       }
