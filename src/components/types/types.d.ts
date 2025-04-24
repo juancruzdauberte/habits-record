@@ -1,3 +1,5 @@
+import { UseMutateFunction } from "@tanstack/react-query";
+
 export interface UserResponse {
   data: {
     user: User;
@@ -80,7 +82,7 @@ export interface HabitContextType {
   loadHabitsError: Error | null;
   setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
   addNewHabit: UseMutateFunction<
-    void,
+    Habit | null,
     Error,
     { title: string; description: string }
   >;
@@ -89,6 +91,7 @@ export interface HabitContextType {
     Error,
     { habitId: string; completed: boolean }
   >;
+  deleteHabitById: UseMutateFunction<void, Error, string>;
 }
 
 export type Habit = {

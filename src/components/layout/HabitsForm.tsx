@@ -2,6 +2,7 @@ import { useHabits } from "../context/HabitContext";
 import { useForm } from "@tanstack/react-form";
 import { useAuth } from "../context/AuthContext";
 import { Habit } from "../types/types";
+import { motion } from "motion/react";
 
 export const HabitsForm = () => {
   const { addNewHabit } = useHabits();
@@ -32,9 +33,8 @@ export const HabitsForm = () => {
         <form.Field
           name="title"
           validators={{
-            onSubmit: ({ value }) => {
-              if (value.trim() === "") return "Debes ingresar un titulo";
-            },
+            onSubmit: ({ value }) =>
+              value.trim() === "" ? "Debes ingresar un titulo" : undefined,
           }}
         >
           {(field) => (
@@ -76,12 +76,15 @@ export const HabitsForm = () => {
             </div>
           )}
         </form.Field>
-        <button
+        <motion.button
           type="submit"
-          className="w-full bg-slate-800 text-white py-2 rounded-sm font-semibold hover:bg-slate-700 transition-colors"
+          className="w-full bg-slate-800 text-white py-2 rounded-sm font-semibold transition-colors"
+          whileHover={{ scale: 1.01 }}
+          transition={{ duration: 0.2 }}
+          whileTap={{ scale: 0.95 }}
         >
           Crear hábito
-        </button>
+        </motion.button>
       </form>
     </section>
   );

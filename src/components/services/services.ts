@@ -132,3 +132,12 @@ export async function toggleHabitStatus(
     console.error("Error al actualizar hábito:", error);
   }
 }
+
+export async function deleteHabit(habitId: string): Promise<void> {
+  try {
+    const { error } = await supabase.from("habits").delete().eq("id", habitId);
+    if (error) throw new Error("Error al eliminar el habito");
+  } catch (error) {
+    console.error(error);
+  }
+}

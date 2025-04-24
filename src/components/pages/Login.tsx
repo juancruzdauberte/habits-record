@@ -33,8 +33,8 @@ export const Login = () => {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <section className="w-full max-w-md bg-white shadow-lg rounded-md p-8 space-y-6 ">
-        <h1 className="text-3xl font-bold text-center text-slate-800">
+      <section className="w-full max-w-md bg-white shadow-lg rounded-sm p-10">
+        <h1 className="text-3xl font-bold text-center text-slate-800 mb-5">
           Iniciar sesión
         </h1>
         <form
@@ -42,16 +42,20 @@ export const Login = () => {
             e.preventDefault();
             form.handleSubmit();
           }}
-          className="space-y-4 "
         >
           <form.Field
             name="email"
             validators={{
               onSubmit: ({ value }) => {
-                const emailReggex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return !emailReggex.test(value.trim())
-                  ? "Formato de email inválido"
-                  : undefined;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const trimmed = value.trim();
+
+                if (!trimmed) return "El campo no puede estar vacio";
+
+                if (!emailRegex.test(trimmed))
+                  return "Formato de email inválido";
+
+                return undefined;
               },
             }}
           >
@@ -77,7 +81,7 @@ export const Login = () => {
           </form.Field>
           <button
             type="submit"
-            className="w-full bg-slate-800 text-white py-2 rounded-sm font-semibold hover:bg-slate-700 transition-colors"
+            className="w-full bg-slate-800 text-white py-2 rounded-sm font-semibold hover:bg-slate-700 transition-colors mt-5"
           >
             Enviar
           </button>
@@ -85,7 +89,7 @@ export const Login = () => {
 
         <button
           onClick={signInWithGoogle}
-          className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-sm font-semibold transition-colors "
+          className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-sm font-semibold transition-colors mt-16"
         >
           <GoogleWidget />
           Continuar con Google

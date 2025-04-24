@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Login } from "./components/pages/Login";
 import { AuthProvider } from "./components/context/AuthContext";
 import { Home } from "./components/pages/Home";
-import { Account } from "./components/pages/Account";
 import { ProtectedRoutes } from "./components/config/ProtectedRoutes";
 import { NotFound } from "./components/pages/NotFound";
 import { HabitProvider } from "./components/context/HabitContext";
@@ -16,7 +15,7 @@ function App() {
   return (
     <section className=" bg-slate-50 text-black w-full">
       <BrowserRouter>
-        <Toaster richColors duration={2500} />
+        <Toaster richColors duration={2500} closeButton />
         <AuthProvider>
           <HabitProvider>
             <Routes>
@@ -32,7 +31,6 @@ function App() {
               />
               <Route element={<ProtectedRoutes />}>
                 <Route element={<ProtectedLayout />}>
-                  <Route path="/account" element={<Account />} />
                   <Route path="/home" element={<Home />} />
                   <Route path="/habits-tracking" element={<HabitsTrackig />} />
                 </Route>

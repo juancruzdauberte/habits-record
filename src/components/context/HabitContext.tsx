@@ -10,6 +10,7 @@ import {
   addHabit,
   toggleHabitStatus,
   getHabitsByDate,
+  deleteHabit,
 } from "../services/services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -38,6 +39,20 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     enabled: !!user?.id && !!selectedDate,
   });
 
+  const { mutate: deleteHabitById } = useMutation<void, Error, string>({
+    mutationFn: deleteHabit,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["habits"] });
+      queryClient.invalidateQueries({
+        queryKey: ["habitsTracking", user?.id, formattedDate],
+      });
+      toast.success("Hábito eliminado correctamente");
+    },
+    onError: (error) => {
+      console.error("Error al eliminar hábito:", error.message);
+    },
+  });
+
   const { mutate: addNewHabit } = useMutation<
     Habit | null,
     Error,
@@ -48,8 +63,11 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       return addHabit({ title, description, userId: user.id });
     },
     onSuccess: () => {
-      toast.success("Hábito agregado con éxito");
       queryClient.invalidateQueries({ queryKey: ["habits", user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["habitsTracking", user?.id, formattedDate],
+      });
+      toast.success("Hábito agregado con éxito");
     },
     onError: (error) => {
       toast.error("Error al agregar el hábito");
@@ -68,10 +86,33 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     }: {
       habitId: string;
       completed: boolean;
-    }) => toggleHabitStatus(user?.id as string, habitId, completed),
+    }) => {
+      if (!user?.id) throw new Error("No existe el usuario");
+      return toggleHabitStatus(user?.id, habitId, completed);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["habits", user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["habitsTracking", user?.id, formattedDate],
+      });
       toast.success("Habito realizado con exito");
+    },
+    onMutate: async ({ habitId, completed }) => {
+      await queryClient.cancelQueries({ queryKey: ["habits", user?.id] });
+
+      const previousHabits = queryClient.getQueryData<HabitWithStatus[]>([
+        "habits",
+        user?.id,
+      ]);
+
+      queryClient.setQueryData<HabitWithStatus[]>(
+        ["habits", user?.id],
+        (oldHabits = []) =>
+          oldHabits.map((habit) =>
+            habit.id === habitId ? { ...habit, completed } : habit
+          )
+      );
+      return { previousHabits };
     },
   });
 
@@ -84,6 +125,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     habitsTracking,
     selectedDate,
     setSelectedDate,
+    deleteHabitById,
   };
 
   return (
