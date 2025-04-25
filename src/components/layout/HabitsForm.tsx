@@ -16,7 +16,7 @@ export const HabitsForm = () => {
     } as Habit,
 
     onSubmit: async ({ value, formApi }) => {
-      await addNewHabit({ title: value.title, description: value.description });
+      addNewHabit({ title: value.title, description: value.description });
       formApi.reset();
     },
   });
