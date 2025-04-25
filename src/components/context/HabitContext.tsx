@@ -17,15 +17,23 @@ import { toast } from "sonner";
 
 const HabitContext = createContext<HabitContextType | undefined>(undefined);
 
+function formatDateToLocalYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export const HabitProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const formattedDate = selectedDate.toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const queryClient = useQueryClient();
+
+  const formattedDate = formatDateToLocalYYYYMMDD(selectedDate);
 
   const {
     data: habits = [],
-    isLoading,
+    isLoading: habitsLoading,
     error: loadHabitsError,
   } = useQuery<HabitWithStatus[]>({
     queryKey: ["habits", user?.id],
@@ -33,14 +41,50 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     enabled: !!user?.id,
   });
 
-  const { data: habitsTracking = [] } = useQuery<HabitWithStatus[]>({
-    queryKey: ["habitsTracking", user?.id, formattedDate],
-    queryFn: () => getHabitsByDate(user!.id, formattedDate),
-    enabled: !!user?.id && !!selectedDate,
-  });
+  const { data: habitsTracking = [], isLoading: habitsTrackingLoading } =
+    useQuery<HabitWithStatus[]>({
+      queryKey: ["habitsTracking", user?.id, formattedDate],
+      queryFn: () => getHabitsByDate(user!.id, formattedDate),
+      enabled: !!user?.id && !!formattedDate,
+    });
 
-  const { mutate: deleteHabitById } = useMutation<void, Error, string>({
+  const { mutate: deleteHabitById } = useMutation<
+    void,
+    Error,
+    string,
+    {
+      previousHabits: HabitWithStatus[] | undefined;
+      previousHabitsTracking: HabitWithStatus[] | undefined;
+    }
+  >({
     mutationFn: deleteHabit,
+    onMutate: async (habitId) => {
+      await queryClient.cancelQueries({ queryKey: ["habits", user?.id] });
+      await queryClient.cancelQueries({
+        queryKey: ["habitsTracking", user?.id, formattedDate],
+      });
+
+      const previousHabits = queryClient.getQueryData<HabitWithStatus[]>([
+        "habits",
+        user?.id,
+      ]);
+
+      const previousHabitsTracking = queryClient.getQueryData<
+        HabitWithStatus[]
+      >(["habitsTracking", user?.id, formattedDate]);
+
+      queryClient.setQueryData<HabitWithStatus[]>(
+        ["habits", user?.id],
+        (old = []) => old.filter((habit) => habit.id !== habitId)
+      );
+
+      queryClient.setQueryData<HabitWithStatus[]>(
+        ["habitsTracking", user?.id, formattedDate],
+        (old = []) => old.filter((habit) => habit.id !== habitId)
+      );
+
+      return { previousHabits, previousHabitsTracking };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["habits"] });
       queryClient.invalidateQueries({
@@ -48,19 +92,63 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       });
       toast.success("Hábito eliminado correctamente");
     },
-    onError: (error) => {
-      console.error("Error al eliminar hábito:", error.message);
+    onError: (error, _variables, context) => {
+      toast.error(error.message);
+
+      if (context?.previousHabits)
+        queryClient.setQueryData(["habits", user?.id], context.previousHabits);
+      if (context?.previousHabitsTracking)
+        queryClient.setQueryData(
+          ["habitsTracking", user?.id, formattedDate],
+          context.previousHabitsTracking
+        );
     },
   });
 
   const { mutate: addNewHabit } = useMutation<
     Habit | null,
     Error,
-    { title: string; description: string }
+    { title: string; description: string },
+    {
+      previousHabits: HabitWithStatus[] | undefined;
+      previousHabitsTracking: HabitWithStatus[] | undefined;
+    }
   >({
     mutationFn: async ({ title, description }) => {
       if (!user?.id) throw new Error("El usuario no está autenticado");
       return addHabit({ title, description, userId: user.id });
+    },
+    onMutate: async ({ title, description }) => {
+      await queryClient.cancelQueries({ queryKey: ["habits", user?.id] });
+      await queryClient.cancelQueries({
+        queryKey: ["habitsTracking", user?.id, formattedDate],
+      });
+
+      const previousHabits = queryClient.getQueryData<HabitWithStatus[]>([
+        "habits",
+        user?.id,
+      ]);
+      const previousHabitsTracking = queryClient.getQueryData<
+        HabitWithStatus[]
+      >(["habitsTracking", user?.id, formattedDate]);
+
+      const newHabit: HabitWithStatus = {
+        title,
+        description,
+        completed: false,
+        user_id: user!.id,
+      };
+
+      queryClient.setQueryData<HabitWithStatus[]>(
+        ["habits", user?.id],
+        (old = []) => [...old, newHabit]
+      );
+      queryClient.setQueryData<HabitWithStatus[]>(
+        ["habitsTracking", user?.id, formattedDate],
+        (old = []) => [...old, newHabit]
+      );
+
+      return { previousHabits, previousHabitsTracking };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["habits", user?.id] });
@@ -69,24 +157,26 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       });
       toast.success("Hábito agregado con éxito");
     },
-    onError: (error) => {
-      toast.error("Error al agregar el hábito");
-      console.error(error);
+    onError: (error, _variables, context) => {
+      toast.error(error.message);
+
+      if (context?.previousHabits)
+        queryClient.setQueryData(["habits", user?.id], context.previousHabits);
+      if (context?.previousHabitsTracking)
+        queryClient.setQueryData(
+          ["habitsTracking", user?.id, formattedDate],
+          context.previousHabitsTracking
+        );
     },
   });
 
   const { mutate: toggleHabit } = useMutation<
     void,
     Error,
-    { habitId: string; completed: boolean }
+    { habitId: string; completed: boolean },
+    { previousHabits: HabitWithStatus[] | undefined }
   >({
-    mutationFn: async ({
-      habitId,
-      completed,
-    }: {
-      habitId: string;
-      completed: boolean;
-    }) => {
+    mutationFn: async ({ habitId, completed }) => {
       if (!user?.id) throw new Error("No existe el usuario");
       return toggleHabitStatus(user?.id, habitId, completed);
     },
@@ -95,7 +185,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       queryClient.invalidateQueries({
         queryKey: ["habitsTracking", user?.id, formattedDate],
       });
-      toast.success("Habito realizado con exito");
+      toast.success("Hábito realizado con éxito");
     },
     onMutate: async ({ habitId, completed }) => {
       await queryClient.cancelQueries({ queryKey: ["habits", user?.id] });
@@ -112,19 +202,28 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
             habit.id === habitId ? { ...habit, completed } : habit
           )
       );
+
       return { previousHabits };
+    },
+    onError: (error, _variables, context) => {
+      toast.error(error.message);
+
+      if (context?.previousHabits)
+        queryClient.setQueryData(["habits", user?.id], context.previousHabits);
     },
   });
 
   const value = {
     habits,
-    isLoading,
+    habitsLoading,
+    habitsTrackingLoading,
     addNewHabit,
     toggleHabit,
     loadHabitsError,
     habitsTracking,
-    selectedDate,
     setSelectedDate,
+    selectedDate,
+    formattedDate,
     deleteHabitById,
   };
 

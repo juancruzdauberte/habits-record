@@ -77,7 +77,9 @@ export interface AuthContextType {
 export interface HabitContextType {
   habits: HabitWithStatus[];
   habitsTracking: HabitWithStatus[];
-  isLoading: boolean;
+  habitsLoading: boolean;
+  habitsTrackingLoading: boolean;
+  formattedDate: string;
   selectedDate: Date;
   loadHabitsError: Error | null;
   setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
@@ -101,9 +103,3 @@ export type Habit = {
   user_id: string;
 };
 export type HabitWithStatus = Habit & { completed: boolean };
-
-export type DailySummary = {
-  user_id: string;
-  date: string;
-  shown: boolean;
-};

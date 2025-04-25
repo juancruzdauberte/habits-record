@@ -2,7 +2,7 @@ import { useHabits } from "../context/HabitContext";
 import { useForm } from "@tanstack/react-form";
 import { useAuth } from "../context/AuthContext";
 import { Habit } from "../types/types";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 
 export const HabitsForm = () => {
   const { addNewHabit } = useHabits();
@@ -47,9 +47,18 @@ export const HabitsForm = () => {
                 name="title"
                 type="text"
                 value={field.state.value}
+                maxLength={30}
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="px-2 py-0.5 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600"
               />
+              <motion.div
+                key={field.state.value.length}
+                className="text-end text-sm text-gray-500"
+              >
+                {field.state.value.length === 0
+                  ? "Max: 30 carácteres"
+                  : `Te quedan: ${30 - field.state.value.length} caracteres`}
+              </motion.div>
 
               {field.state.meta.errors.length > 0 && (
                 <em className="text-red-500 text-sm">
@@ -72,7 +81,16 @@ export const HabitsForm = () => {
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="px-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600 min-h-[150px] resize-none"
+                maxLength={60}
               ></textarea>
+              <motion.div
+                key={field.state.value.length}
+                className="text-end text-sm text-gray-500 "
+              >
+                {field.state.value.length === 0
+                  ? "Max: 60 carácteres"
+                  : `Te quedan: ${60 - field.state.value.length} caracteres`}
+              </motion.div>
             </div>
           )}
         </form.Field>

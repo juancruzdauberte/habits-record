@@ -46,7 +46,14 @@ export async function getHabitsForToday(
   userId: string
 ): Promise<HabitWithStatus[]> {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    const localDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    )
+      .toISOString()
+      .split("T")[0];
 
     const { data: habits, error: habitsError } = await supabase
       .from("habits")
@@ -59,7 +66,7 @@ export async function getHabitsForToday(
       .from("habits_tracking")
       .select("habit_id, completed")
       .eq("user_id", userId)
-      .eq("date", today);
+      .eq("date", localDate);
 
     if (trackingError) throw new Error("Error al cargar tracking");
 
@@ -116,13 +123,20 @@ export async function toggleHabitStatus(
   habitId: string,
   completed: boolean
 ): Promise<void> {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date();
+  const localDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  )
+    .toISOString()
+    .split("T")[0];
 
   const { error } = await supabase.from("habits_tracking").upsert(
     {
       user_id: userId,
       habit_id: habitId,
-      date: today,
+      date: localDate,
       completed,
     },
     { onConflict: "user_id,habit_id,date" }

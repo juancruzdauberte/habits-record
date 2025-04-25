@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Loading } from "../common/widgets/Loading";
 import { CiLogout } from "react-icons/ci";
+
 export const Navbar = () => {
   const { user, signOut, loading } = useAuth();
 
@@ -16,13 +17,16 @@ export const Navbar = () => {
     <header className="w-full fixed top-0 flex items-center justify-between bg-slate-600 p-2 z-50">
       <div>
         <Link to="/home">
-          <h1 className="text-white font-bold text-2xl">Habits Record</h1>
+          <h1 className="text-white font-bold text-lg md:text-2xl hover:underline">
+            Habits Record
+          </h1>
         </Link>
       </div>
       <ul className="flex items-center gap-5">
-        <li className="text-white px-2 font-semibold hover:bg-slate-400 hover:rounded-full ">
+        <li className="text-white px-2 font-semibold text-sm md:text-md hover:bg-white hover:text-slate-600 rounded-full">
           <Link to="/habits-tracking">Registro de hábitos</Link>
         </li>
+
         <li className="relative group">
           <img
             src={user?.picture}

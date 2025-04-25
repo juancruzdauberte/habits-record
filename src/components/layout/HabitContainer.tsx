@@ -4,19 +4,19 @@ import { motion } from "framer-motion";
 import { FiCheck } from "react-icons/fi";
 
 export const HabitContainer = () => {
-  const { habits, isLoading, loadHabitsError, toggleHabit } = useHabits();
-  const today = new Date().toISOString().split("T")[0];
+  const { habits, habitsLoading, toggleHabit, selectedDate } = useHabits();
   const allHabitsCompleted = habits.every((habit) => habit.completed);
 
-  if (loadHabitsError) return <h2>{loadHabitsError.message}</h2>;
   return (
     <section>
-      {isLoading ? (
+      {habitsLoading ? (
         <Loading text="Cargando hábitos..." />
       ) : (
         <section className="px-10 py-5 bg-gray-50 rounded-sm shadow-md max-w-xl lg:w-[500px] mx-auto">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">{today}</h2>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              {selectedDate.toLocaleDateString()}
+            </h2>
           </div>
 
           {habits.length === 0 ? (
