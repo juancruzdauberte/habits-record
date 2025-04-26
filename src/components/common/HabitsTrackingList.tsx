@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { CiCircleInfo, CiCircleRemove } from "react-icons/ci";
 import { type HabitWithStatus } from "../types/types";
 import { useHabits } from "../context/HabitContext";
-import Swal from "sweetalert2";
+import {
+  habitDeleteNotification,
+  habitDeleteNotificationConfirmation,
+  habitInfoNotification,
+} from "../utils/utils";
 
 export const HabitsTrackingList = () => {
   const [items, setItems] = useState<HabitWithStatus[]>([]);
@@ -11,10 +15,8 @@ export const HabitsTrackingList = () => {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const formattedSelectedDate = new Date(selectedDate);
   formattedSelectedDate.setHours(0, 0, 0, 0);
-
   const isToday = formattedSelectedDate.getTime() === today.getTime();
   const isFuture = formattedSelectedDate.getTime() > today.getTime();
 
@@ -69,26 +71,11 @@ export const HabitsTrackingList = () => {
                     <div className="flex gap-1">
                       <button
                         onClick={async () => {
-                          const result = await Swal.fire({
-                            title: "¿Estás seguro?",
-                            text: "Esta acción eliminará el hábito permanentemente.",
-                            icon: "warning",
-                            width: "400px",
-                            showCancelButton: true,
-                            confirmButtonColor: "#d33",
-                            cancelButtonColor: "#3085d6",
-                            confirmButtonText: "Sí, eliminar",
-                            cancelButtonText: "Cancelar",
-                          });
+                          const result = await habitDeleteNotification();
 
                           if (result.isConfirmed) {
                             deleteHabitById(habit.id as string);
-                            Swal.fire({
-                              title: "Eliminado",
-                              icon: "success",
-                              text: "El habito ha sido eliminado",
-                              width: "400px",
-                            });
+                            habitDeleteNotificationConfirmation();
                           }
                         }}
                         className="hover:text-red-500 text-gray-400 rounded-md transition-colors duration-100"
@@ -99,18 +86,7 @@ export const HabitsTrackingList = () => {
                       <button
                         className="hover:text-blue-400 text-blue-700 rounded-md transition-colors duration-100"
                         aria-label="Info"
-                        onClick={() =>
-                          Swal.fire({
-                            title: "Descripción",
-                            text:
-                              habit.description ||
-                              "No hay descripción para este hábito",
-                            icon: "info",
-                            width: "400px",
-                            confirmButtonColor: "green",
-                            cancelButtonText: "Cancelar",
-                          })
-                        }
+                        onClick={() => habitInfoNotification(habit.description)}
                       >
                         <CiCircleInfo size={25} />
                       </button>

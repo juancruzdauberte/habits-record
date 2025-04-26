@@ -11,17 +11,20 @@ export const HabitsTrackig = () => {
   return (
     <section className="w-full flex flex-col md:flex-row gap-8 items-center md:items-start md:justify-around">
       <div className="flex flex-col justify-center bg-gray-50 shadow-md p-4">
-        <h5 className="font-semibold text-2xl text-slate-600">
-          Fecha:
+        <div className="flex items-center justify-between border-b-2">
+          <h5 className="font-semibold text-2xl text-slate-600 ">Calendario</h5>
           <span className="ms-2 font-bold text-xl text-slate-400">
             {selectedDate.toLocaleDateString()}
           </span>
-        </h5>
+        </div>
+
         <CalendarWidget />
       </div>
 
       <div className="w-full md:w-2/4 max-w-[550px] bg-gray-50 shadow-md p-4 rounded-md">
-        <h2 className="font-semibold text-2xl text-slate-600">Mis hábitos:</h2>
+        <h2 className="font-semibold text-2xl text-slate-600 border-b-2">
+          Mis hábitos:
+        </h2>
         {habitsTrackingLoading ? (
           <div className="flex justify-center p-20">
             <Loading text="Cargando hábitos..." />

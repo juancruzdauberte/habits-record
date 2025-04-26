@@ -1,20 +1,29 @@
+import { useMemo, useState } from "react";
 import { Loading } from "../common/widgets/Loading";
 import { useHabits } from "../context/HabitContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FiCheck } from "react-icons/fi";
+import { Filter } from "../common/Filter";
 
 export const HabitContainer = () => {
   const { habits, habitsLoading, toggleHabit, selectedDate } = useHabits();
-  const allHabitsCompleted = habits.every((habit) => habit.completed);
+  const [filter, setFilter] = useState("a-z");
 
+  const allHabitsCompleted = habits.every((habit) => habit.completed);
+  const filteredHabits = useMemo(() => {
+    if (filter === "a-z")
+      return habits.sort((a, b) => a.title.localeCompare(b.title));
+    if (filter === "z-a")
+      return habits.sort((a, b) => b.title.localeCompare(a.title));
+  }, [filter, habits]);
   return (
-    <section>
+    <section className="mb-20 md:mb-0">
       {habitsLoading ? (
         <Loading text="Cargando hábitos..." />
       ) : (
         <section className="px-10 py-5 bg-gray-50 rounded-sm shadow-md max-w-xl lg:w-[500px] mx-auto">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">
+            <h2 className="text-2xl font-semibold  text-gray-800 border-b-2 p-2">
               {selectedDate.toLocaleDateString()}
             </h2>
           </div>
@@ -40,49 +49,58 @@ export const HabitContainer = () => {
                   Hábitos a realizar el día de hoy:
                 </h4>
               </div>
+              <Filter filter={filter} setFilter={setFilter} />
               <div>
-                {habits.map((habit) => (
-                  <div key={habit.id} className="flex items-center gap-2 mb-3">
-                    <div className="relative flex items-center">
-                      <motion.input
-                        type="checkbox"
-                        checked={habit.completed}
-                        disabled={habit.completed}
-                        onChange={() => {
-                          if (!habit.completed) {
-                            toggleHabit({
-                              habitId: habit.id as string,
-                              completed: true,
-                            });
-                          }
-                        }}
-                        whileTap={{ scale: 1.1 }}
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                        className={`h-5 w-5 cursor-pointer appearance-none  ${
-                          habit.completed
-                            ? "bg-green-500 "
-                            : "border border-slate-400 bg-gray-200"
-                        }`}
-                      />
-                      {habit.completed && (
-                        <span className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none text-white">
-                          <FiCheck size={22} />
-                        </span>
-                      )}
-                    </div>
-
-                    <label
-                      className={`text-md ${
-                        habit.completed
-                          ? "line-through text-gray-500"
-                          : "text-black"
-                      }`}
+                <AnimatePresence mode="popLayout">
+                  {filteredHabits?.map((habit) => (
+                    <motion.div
+                      key={habit.id}
+                      layout
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center gap-2 mb-3"
                     >
-                      {habit.title}
-                    </label>
-                  </div>
-                ))}
+                      <div className="relative flex items-center">
+                        <motion.input
+                          type="checkbox"
+                          checked={habit.completed}
+                          disabled={habit.completed}
+                          onChange={() => {
+                            if (!habit.completed) {
+                              toggleHabit({
+                                habitId: habit.id as string,
+                                completed: true,
+                              });
+                            }
+                          }}
+                          whileTap={{ scale: 1.1 }}
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                          className={`h-5 w-5 cursor-pointer appearance-none ${
+                            habit.completed
+                              ? "bg-green-500"
+                              : "border border-slate-400 bg-gray-200"
+                          }`}
+                        />
+                        {habit.completed && (
+                          <span className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none text-white">
+                            <FiCheck size={22} />
+                          </span>
+                        )}
+                      </div>
+
+                      <label
+                        className={`text-md ${
+                          habit.completed
+                            ? "line-through text-gray-500"
+                            : "text-black"
+                        }`}
+                      >
+                        {habit.title}
+                      </label>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             </section>
           )}
