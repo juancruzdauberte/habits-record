@@ -58,15 +58,15 @@ export const HabitsForm = () => {
                 value={field.state.value}
                 maxLength={30}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className={`px-2 py-0.5 border  rounded-sm shadow-sm focus:outline-none focus:ring-2  ${
-                  field.state.meta.errors.length > 0
-                    ? "border-red-500 focus:ring-red-500 focus:ring-1"
-                    : "border-gray-300 focus:ring-slate-600 "
-                }  ${
-                  30 - field.state.value.length === 0
-                    ? "border-yellow-400 focus:ring-yellow-400 focus:ring-1"
-                    : "border-gray-300 focus:ring-slate-600"
-                }`}
+                className={`px-2 py-0.5 border rounded-sm shadow-sm focus:outline-none focus:ring-2
+                  ${
+                    field.state.meta.errors.length > 0
+                      ? "border-red-500 focus:ring-red-500 focus:ring-1"
+                      : 30 - field.state.value.length === 0
+                      ? "border-yellow-400 focus:ring-yellow-400 focus:ring-1"
+                      : "border-gray-300 focus:ring-slate-600"
+                  }
+                `}
               />
 
               <div className="flex justify-between">
