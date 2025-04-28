@@ -28,7 +28,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const queryClient = useQueryClient();
-
+  const today = new Date();
   const formattedDate = formatDateToLocalYYYYMMDD(selectedDate);
 
   const {
@@ -223,6 +223,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     habitsTracking,
     setSelectedDate,
     selectedDate,
+    today,
     formattedDate,
     deleteHabitById,
   };

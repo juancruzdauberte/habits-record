@@ -1,13 +1,20 @@
 import { useMemo, useState } from "react";
-import { Loading } from "../common/widgets/Loading";
 import { useHabits } from "../context/HabitContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiCheck } from "react-icons/fi";
 import { Filter } from "../common/Filter";
+import { SkeletonHabitContainer } from "../common/SkeletonHabitContainer";
 
 export const HabitContainer = () => {
-  const { habits, habitsLoading, toggleHabit, selectedDate } = useHabits();
-  const [filter, setFilter] = useState("a-z");
+  const { habits, habitsLoading, toggleHabit, today } = useHabits();
+  const [filter, setFilterState] = useState(() => {
+    return localStorage.getItem("habit-filter") || "a-z";
+  });
+
+  const setFilter = (newFilter: string) => {
+    setFilterState(newFilter);
+    localStorage.setItem("habit-filter", newFilter);
+  };
 
   const allHabitsCompleted = habits.every((habit) => habit.completed);
   const filteredHabits = useMemo(() => {
@@ -19,12 +26,12 @@ export const HabitContainer = () => {
   return (
     <section className="mb-20 md:mb-0">
       {habitsLoading ? (
-        <Loading text="Cargando hábitos..." />
+        <SkeletonHabitContainer />
       ) : (
         <section className="px-10 py-5 bg-gray-50 rounded-sm shadow-md max-w-xl lg:w-[500px] mx-auto">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold  text-gray-800 border-b-2 p-2">
-              {selectedDate.toLocaleDateString()}
+            <h2 className="text-2xl font-semibold text-gray-800 border-b-2 p-2">
+              {today.toLocaleDateString()}
             </h2>
           </div>
 
@@ -78,7 +85,7 @@ export const HabitContainer = () => {
                           transition={{ type: "spring", stiffness: 300 }}
                           className={`h-5 w-5 cursor-pointer appearance-none ${
                             habit.completed
-                              ? "bg-green-500"
+                              ? "bg-green-600"
                               : "border border-slate-400 bg-gray-200"
                           }`}
                         />

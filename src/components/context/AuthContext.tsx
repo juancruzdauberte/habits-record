@@ -51,7 +51,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw new Error("Ha ocurrido un error en la autenticación");
       setUser(null);
-      console.log(user);
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -62,20 +61,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const { id, email, user_metadata } = session.user;
-        const { picture, full_name } = user_metadata;
+      if (event === "SIGNED_IN") {
+        if (session?.user) {
+          const { id, email, user_metadata } = session.user;
+          const { picture, full_name } = user_metadata;
 
-        const userData: UserTypeState = {
-          id,
-          email: email || " ",
-          picture,
-          full_name,
-        };
-        setUser(userData);
-        if (event === "SIGNED_IN" && location.pathname === "/")
-          navigate("/home");
-      } else {
+          const userData: UserTypeState = {
+            id,
+            email: email || " ",
+            picture,
+            full_name,
+          };
+          setUser(userData);
+          if (location.pathname === "/") navigate("/home");
+        }
+      } else if (event === "SIGNED_OUT") {
         setUser(null);
       }
     });
@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       data.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, location.pathname, loadingFalse, loadingTrue]);
 
   const value = {
     signInWithGoogle,

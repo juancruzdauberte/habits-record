@@ -11,9 +11,8 @@ import {
 
 export const HabitsTrackingList = () => {
   const [items, setItems] = useState<HabitWithStatus[]>([]);
-  const { selectedDate, habitsTracking, deleteHabitById } = useHabits();
+  const { selectedDate, habitsTracking, today, deleteHabitById } = useHabits();
 
-  const today = new Date();
   today.setHours(0, 0, 0, 0);
   const formattedSelectedDate = new Date(selectedDate);
   formattedSelectedDate.setHours(0, 0, 0, 0);
@@ -37,7 +36,7 @@ export const HabitsTrackingList = () => {
             : "bg-red-100 text-red-500 border border-red-500";
 
           const badgeText = habit.completed
-            ? "Completado"
+            ? "Realizado"
             : isToday
             ? "Pendiente"
             : isFuture

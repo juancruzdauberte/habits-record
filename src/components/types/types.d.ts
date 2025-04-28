@@ -79,6 +79,7 @@ export interface HabitContextType {
   habitsTracking: HabitWithStatus[];
   habitsLoading: boolean;
   habitsTrackingLoading: boolean;
+  today: Date;
   formattedDate: string;
   selectedDate: Date;
   loadHabitsError: Error | null;

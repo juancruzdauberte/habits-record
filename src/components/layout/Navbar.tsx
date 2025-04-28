@@ -2,9 +2,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Loading } from "../common/widgets/Loading";
 import { CiLogout } from "react-icons/ci";
+import { FiUser } from "react-icons/fi";
+import { useState } from "react";
 
 export const Navbar = () => {
   const { user, signOut, loading } = useAuth();
+  const [imgError, setImgError] = useState(false);
 
   if (loading)
     return (
@@ -27,19 +30,28 @@ export const Navbar = () => {
           <Link to="/habits-tracking">Registro de hábitos</Link>
         </li>
 
-        <li className="relative group">
-          <img
-            src={user?.picture}
-            alt={user?.full_name}
-            className="w-9 h-9 rounded-full cursor-pointer"
-          />
-          <div className="absolute right-0 mt w-40 bg-white shadow-lg rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span
-              className="px-4 py-2 flex items-center gap-1 hover:bg-red-200 cursor-pointer text-red-600"
-              onClick={signOut}
-            >
-              <CiLogout size={18} /> Cerrar sesión
-            </span>
+        <li className="relative">
+          <div className="group relative inline-block">
+            {!imgError ? (
+              <img
+                src={user?.picture}
+                alt={user?.full_name}
+                className="w-9 h-9 rounded-full cursor-pointer"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gray-400 flex items-center justify-center">
+                <FiUser className="text-white" size={24} />
+              </div>
+            )}
+            <div className="hidden group-hover:block absolute right-0 w-40 bg-white shadow-lg rounded-sm transition-all duration-300">
+              <span
+                className="px-4 py-2 flex items-center gap-1 hover:bg-red-200 cursor-pointer text-red-600"
+                onClick={signOut}
+              >
+                <CiLogout size={18} /> Cerrar sesión
+              </span>
+            </div>
           </div>
         </li>
       </ul>
