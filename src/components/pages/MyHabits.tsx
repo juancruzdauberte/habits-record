@@ -62,7 +62,7 @@ export const MyHabits = () => {
       drag
       dragSnapToOrigin
       whileDrag={{ scale: 1.05 }}
-      onDragEnd={(event, info) => {
+      onDragEnd={(_event, info) => {
         const dropX = info.point.x;
 
         if (dropX < window.innerWidth / 2) {
