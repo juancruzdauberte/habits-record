@@ -1,4 +1,5 @@
 export const CheckEmail = () => {
+  document.title = "Check email";
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <section className="w-full flex flex-col gap-10  max-w-md bg-white shadow-lg rounded-sm p-8 space-y-6 ">

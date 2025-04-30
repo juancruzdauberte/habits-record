@@ -61,15 +61,15 @@ export const HabitsForm = () => {
                     name="title"
                     type="text"
                     value={field.state.value}
-                    maxLength={30}
+                    maxLength={25}
                     onChange={(e) => field.handleChange(e.target.value)}
                     className={`px-2 py-0.5 border rounded-sm shadow-sm focus:outline-none focus:ring-2
                   ${
                     field.state.meta.errors.length > 0
-                      ? "border-red-500 focus:ring-red-500 focus:ring-1"
-                      : 30 - field.state.value.length === 0
-                      ? "border-yellow-400 focus:ring-yellow-400 focus:ring-1"
-                      : "border-gray-300 focus:ring-slate-600"
+                      ? "border-red-500 focus:ring-red-200 focus:ring-1"
+                      : 25 - field.state.value.length === 0
+                      ? "border-yellow-400 focus:ring-yellow-100 focus:ring-1"
+                      : "border-gray-300 focus:ring-slate-300"
                   }
                 `}
                   />
@@ -81,7 +81,7 @@ export const HabitsForm = () => {
                           {field.state.meta.errors.join(", ")}
                         </p>
                       )}
-                      {30 - field.state.value.length === 0 && (
+                      {25 - field.state.value.length === 0 && (
                         <p className="text-yellow-500 text-sm">
                           Máximo de caracteres
                         </p>
@@ -93,9 +93,9 @@ export const HabitsForm = () => {
                       className="self-end text-xs text-gray-500"
                     >
                       {field.state.value.length === 0
-                        ? "Max: 30 carácteres"
+                        ? "Max: 25 carácteres"
                         : `Te quedan: ${
-                            30 - field.state.value.length
+                            25 - field.state.value.length
                           } caracteres`}
                     </motion.p>
                   </div>
@@ -116,8 +116,8 @@ export const HabitsForm = () => {
                     onChange={(e) => field.handleChange(e.target.value)}
                     className={`px-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-600 min-h-[150px] resize-none ${
                       60 - field.state.value.length === 0
-                        ? "border-yellow-400 focus:ring-yellow-400 focus:ring-1"
-                        : "border-gray-300 focus:ring-slate-600"
+                        ? "border-yellow-400 focus:ring-yellow-100 focus:ring-1"
+                        : "border-gray-300 focus:ring-slate-300"
                     }`}
                     maxLength={60}
                   ></textarea>

@@ -10,6 +10,7 @@ import { ProtectedLayout } from "./components/config/ProtectedLayout";
 import { ProtectedCheckEmailRoute } from "./components/config/ProtectedCheckEmailRoute";
 import { CheckEmail } from "./components/pages/CheckEmail";
 import { HabitsTrackig } from "./components/pages/HabitsTrackig";
+import { MyHabits } from "./components/pages/MyHabits";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
                 <Route element={<ProtectedLayout />}>
                   <Route path="/home" element={<Home />} />
                   <Route path="/habits-tracking" element={<HabitsTrackig />} />
+                  <Route path="/my-habits" element={<MyHabits />} />
                 </Route>
               </Route>
             </Routes>
