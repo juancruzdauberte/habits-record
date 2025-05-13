@@ -51,7 +51,7 @@ export const HabitsTrackingList = () => {
                     <span className="text-sm font-semibold text-gray-500">
                       Título
                     </span>
-                    <span className="text-sm font-medium mt-1">
+                    <span className="text-sm lg:text-lg font-medium mt-1">
                       {habit.title}
                     </span>
                   </div>
@@ -62,7 +62,7 @@ export const HabitsTrackingList = () => {
                         Estado
                       </span>
                       <span
-                        className={`text-xs md:text-sm font-medium mt-1 px-2 py-0.5 rounded-md text-center ${badgeColor}`}
+                        className={`text-xs font-medium mt-1 px-2 py-0.5 rounded-md text-center ${badgeColor}`}
                       >
                         {badgeText}
                       </span>
