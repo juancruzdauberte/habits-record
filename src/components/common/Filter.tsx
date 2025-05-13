@@ -24,6 +24,7 @@ export const Filter = ({
       >
         <option value="a-z">A-Z</option>
         <option value="z-a">Z-A</option>
+        <option value="ma-no">Mañana - Noche</option>
       </motion.select>
     </motion.div>
   );

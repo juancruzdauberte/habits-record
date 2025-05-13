@@ -3,6 +3,7 @@ import {
   type HabitWithStatus,
   type UserTypeState,
   type Habit,
+  do_in,
 } from "../types/types";
 
 export async function createUser(user: UserTypeState) {
@@ -22,16 +23,18 @@ export async function createUser(user: UserTypeState) {
 export async function addHabit({
   title,
   description,
+  doIn,
   userId,
 }: {
   title: string;
   description: string;
+  doIn: do_in;
   userId: string;
 }): Promise<Habit | null> {
   try {
     const { data, error } = await supabase
       .from("habits")
-      .insert({ title, description, user_id: userId })
+      .insert({ title, description, doIn, user_id: userId })
       .select();
 
     if (error) throw new Error(error.message);
@@ -57,7 +60,7 @@ export async function getHabitsForToday(
 
     const { data: habits, error: habitsError } = await supabase
       .from("habits")
-      .select("id, title, description, user_id")
+      .select("id, title, description, doIn, user_id")
       .eq("user_id", userId);
 
     if (habitsError) throw new Error("Error al cargar hábitos");
@@ -91,7 +94,7 @@ export async function getHabitsByDate(
   try {
     const { data: habits, error: habitsError } = await supabase
       .from("habits")
-      .select("id, title, description, user_id")
+      .select("id, title, description, doIn, user_id")
       .eq("user_id", userId);
 
     if (habitsError) throw new Error("Error al cargar hábitos");

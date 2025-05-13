@@ -87,7 +87,7 @@ export interface HabitContextType {
   addNewHabit: UseMutateFunction<
     Habit | null,
     Error,
-    { title: string; description: string }
+    { title: string; description: string; doIn: do_in }
   >;
   toggleHabit: UseMutateFunction<
     void,
@@ -101,6 +101,10 @@ export type Habit = {
   id?: string;
   title: string;
   description: string;
+  doIn: do_in;
   user_id: string;
 };
+
+export type do_in = "Mañana" | "Tarde" | "Noche" | "";
+
 export type HabitWithStatus = Habit & { completed: boolean };

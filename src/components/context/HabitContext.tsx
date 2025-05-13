@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 import {
+  do_in,
   HabitWithStatus,
   type Habit,
   type HabitContextType,
@@ -108,17 +109,17 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
   const { mutate: addNewHabit } = useMutation<
     Habit | null,
     Error,
-    { title: string; description: string },
+    { title: string; description: string; doIn: do_in },
     {
       previousHabits: HabitWithStatus[] | undefined;
       previousHabitsTracking: HabitWithStatus[] | undefined;
     }
   >({
-    mutationFn: async ({ title, description }) => {
+    mutationFn: async ({ title, description, doIn }) => {
       if (!user?.id) throw new Error("El usuario no está autenticado");
-      return addHabit({ title, description, userId: user.id });
+      return addHabit({ title, description, doIn, userId: user.id });
     },
-    onMutate: async ({ title, description }) => {
+    onMutate: async ({ title, description, doIn }) => {
       await queryClient.cancelQueries({ queryKey: ["habits", user?.id] });
       await queryClient.cancelQueries({
         queryKey: ["habitsTracking", user?.id, formattedDate],
@@ -135,6 +136,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       const newHabit: HabitWithStatus = {
         title,
         description,
+        doIn,
         completed: false,
         user_id: user!.id,
       };

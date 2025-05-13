@@ -1,7 +1,7 @@
 import { useHabits } from "../context/HabitContext";
 import { useForm } from "@tanstack/react-form";
 import { useAuth } from "../context/AuthContext";
-import { Habit } from "../types/types";
+import { do_in, Habit } from "../types/types";
 import { motion } from "framer-motion";
 import { capitalizeFirstLetter } from "../utils/utils";
 import { SkeletonHabitsForm } from "../common/SkeletonHabitsForm";
@@ -14,13 +14,14 @@ export const HabitsForm = () => {
     defaultValues: {
       title: "",
       description: "",
+      doIn: "Mañana",
       user_id: user?.id,
     } as Habit,
 
     onSubmit: async ({ value, formApi }) => {
       const title = capitalizeFirstLetter(value.title);
       const description = capitalizeFirstLetter(value.description);
-      addNewHabit({ title, description });
+      addNewHabit({ title, description, doIn: value.doIn });
       formApi.reset();
     },
   });
@@ -63,7 +64,7 @@ export const HabitsForm = () => {
                     value={field.state.value}
                     maxLength={25}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    className={`px-2 py-0.5 border rounded-sm shadow-sm focus:outline-none focus:ring-2
+                    className={`px-2 py-0.5 border rounded-sm shadow-sm focus:outline-none focus:ring-slate-600 focus:ring-2
                   ${
                     field.state.meta.errors.length > 0
                       ? "border-red-500 focus:ring-red-200 focus:ring-1"
@@ -99,6 +100,43 @@ export const HabitsForm = () => {
                           } caracteres`}
                     </motion.p>
                   </div>
+                </div>
+              )}
+            </form.Field>
+            <form.Field
+              name="doIn"
+              validators={{
+                onSubmit: ({ value }) =>
+                  value === "" ? "Selecciona un horario" : undefined,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <div>
+                    <label className="font-semibold text-md md:text-lg">
+                      Horario <span className="text-red-600">*</span>:
+                    </label>
+                    <select
+                      name="doIn"
+                      id="doIn"
+                      value={field.state.value}
+                      onChange={(e) =>
+                        field.handleChange(e.target.value as do_in)
+                      }
+                      className="bg-white border border-black rounded-md ml-1 h-6 text-center"
+                    >
+                      <option value="">Seleccionar</option>
+                      <option value="Mañana">Mañana</option>
+                      <option value="Tarde">Tarde</option>
+                      <option value="Noche">Noche</option>
+                    </select>
+                  </div>
+
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-red-500 text-sm">
+                      {field.state.meta.errors.join(", ")}
+                    </p>
+                  )}
                 </div>
               )}
             </form.Field>

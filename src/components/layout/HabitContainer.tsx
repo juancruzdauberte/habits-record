@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiCheck } from "react-icons/fi";
 import { Filter } from "../common/Filter";
 import { SkeletonHabitContainer } from "../common/SkeletonHabitContainer";
+import { do_in } from "../types/types";
 
 export const HabitContainer = () => {
   const { habits, habitsLoading, toggleHabit, today } = useHabits();
@@ -18,10 +19,22 @@ export const HabitContainer = () => {
 
   const allHabitsCompleted = habits.every((habit) => habit.completed);
   const filteredHabits = useMemo(() => {
+    const sorted = [...habits];
     if (filter === "a-z")
-      return habits.sort((a, b) => a.title.localeCompare(b.title));
+      return sorted.sort((a, b) => a.title.localeCompare(b.title));
     if (filter === "z-a")
-      return habits.sort((a, b) => b.title.localeCompare(a.title));
+      return sorted.sort((a, b) => b.title.localeCompare(a.title));
+    if (filter === "ma-no") {
+      const order: Record<do_in, number> = {
+        Mañana: 0,
+        Tarde: 1,
+        Noche: 2,
+        "": 3,
+      };
+
+      return sorted.sort((a, b) => order[a.doIn] - order[b.doIn]);
+    }
+    return sorted;
   }, [filter, habits]);
   return (
     <section className="mb-20 md:mb-0">
@@ -65,9 +78,9 @@ export const HabitContainer = () => {
                       layout
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="flex items-center gap-2 mb-3"
+                      className="flex items-center justify-between gap-2 mb-3"
                     >
-                      <div className="relative flex items-center">
+                      <div className="relative flex items-center gap-2">
                         <motion.input
                           type="checkbox"
                           checked={habit.completed}
@@ -90,21 +103,22 @@ export const HabitContainer = () => {
                           }`}
                         />
                         {habit.completed && (
-                          <span className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none text-white">
+                          <span className="absolute flex items-center justify-center pointer-events-none text-white">
                             <FiCheck size={22} />
                           </span>
                         )}
+                        <label
+                          className={`text-md ${
+                            habit.completed
+                              ? "line-through text-gray-500"
+                              : "text-black"
+                          }`}
+                        >
+                          {habit.title}
+                        </label>
                       </div>
 
-                      <label
-                        className={`text-md ${
-                          habit.completed
-                            ? "line-through text-gray-500"
-                            : "text-black"
-                        }`}
-                      >
-                        {habit.title}
-                      </label>
+                      <label className="text-sm w-12">{habit.doIn}</label>
                     </motion.div>
                   ))}
                 </AnimatePresence>
